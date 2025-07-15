@@ -1,5 +1,5 @@
 import { SafeAreaView, View } from "react-native";
-import { ActivityIndicator, Button, Text } from "react-native-paper";
+import { Button, Text } from "react-native-paper";
 import {useState, useRef} from "react";
 import { CameraView, CameraType, useCameraPermissions, Camera } from "expo-camera";
 import Loading from "@/components/Loading";
@@ -13,9 +13,7 @@ export default function RegisterScreen() {
     const [uri, setUri] = useState<string | null>(null);
     const router = useRouter();
 
-    if (!permission) {
-        return <Loading />;
-    }
+    if (!permission) return <Loading />;
 
     if (!permission.granted) {
         return (
@@ -25,20 +23,23 @@ export default function RegisterScreen() {
             </View>
         );
     }
+
     const takePicture = async () => {
         const photo = await ref.current?.takePictureAsync();
         console.log('Foto capturada:', photo);
-        setUri(photo?.uri);
-        goToForm();
+        setUri(photo?.uri ?? null);
+        goToForm(photo?.uri);
     };
 
-    const goToForm = () => {
-        if (uri) {
-            router.push({
-                pathname: '/formScreen',
-                params: { uri }
-            });
+    const goToForm = (uriInput: string) => {
+        if (!uriInput) {
+            console.log('Nenhuma imagem capturada');
+            return;
         }
+        router.push({
+            pathname: '/formScreen',
+            params: { uri: uriInput }
+        });
     }
     return(
         <SafeAreaView style={{ flex: 1}}>
