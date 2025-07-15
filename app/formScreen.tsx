@@ -68,7 +68,7 @@ export default function FormScreen(){
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer token`
+                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
                 }
             }
         )
