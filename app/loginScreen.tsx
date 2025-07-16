@@ -10,31 +10,6 @@ export default function LoginScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const router = useRouter();
-//   const recognizeText = async () => {
-//     console.log('início da função recognizeText');
-//     try {
-//       const processed = await TextRecognition.recognize(imageUri);
-//       console.log('Após chamada de TextRecognition.recognize');
-//       console.log('Recognized text:', processed.text);
-//       console.log('processed:', processed);
-
-//       for (let block of processed.blocks) {
-//         console.log('Block text:', block.text);
-//         console.log('Block frame:', block.frame);
-//         for (let line of block.lines) {
-//           console.log('Line text:', line.text);
-//           console.log('Line frame:', line.frame);
-//         }
-//       }
-//     } catch (error) {
-//       console.error('Error recognizing text:', error);
-//     }
-//   };
-
-//   useEffect(() => {
-//     console.log('useEffect disparado');
-//     (async () => recognizeText())();
-//   }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -44,7 +19,7 @@ export default function LoginScreen() {
             paddingVertical: 0.2 * SIZE.HEIGHT,
             justifyContent: 'space-between'
         }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Bem vindo</Text>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', color: "#183665" }}>Bem vindo</Text>
         <TextInput
             label="Email"
             value={email}
@@ -56,7 +31,7 @@ export default function LoginScreen() {
             onChangeText={text => setPassword(text)}
             secureTextEntry
         />
-        <Button icon="arrow-right" mode="contained" onPress={() => router.replace('/registerScreen')}>
+        <Button buttonColor="#183665" icon="arrow-right" mode="contained" onPress={() => router.replace('/registerScreen')}>
             Login
         </Button>
       </View>

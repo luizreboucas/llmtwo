@@ -1,10 +1,11 @@
 import { useGlobalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { SafeAreaView, View } from "react-native";
-import {Text, TextInput} from "react-native-paper";
+import {Button, Text, TextInput} from "react-native-paper";
 import TextRecognition from "@react-native-ml-kit/text-recognition"
 import axios from "axios";
 import { SIZE } from "@/consts/size";
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 
 export default function FormScreen(){
 
@@ -54,6 +55,14 @@ export default function FormScreen(){
         }
     };
 
+    const formatDateToString = (date: Date) => {
+        if (!date) return "";
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+
     const getResponseFromAi = async (textedImage: string) => {
         try {
             const response = await axios.post("https://api.openai.com/v1/chat/completions", {
@@ -82,7 +91,7 @@ export default function FormScreen(){
     useEffect(() => {
         const processImage = async () => {
             const textedImage = await transformImageInText(uri as string);
-            await getResponseFromAi(textedImage);
+            // await getResponseFromAi(textedImage);
             console.log("uri chegando na página de form:", uri);
             console.log("Texto extraído da imagem:", textedImage);
         };
@@ -91,23 +100,40 @@ export default function FormScreen(){
 
     return (
         <SafeAreaView style={{ flex: 1}}>
-            <View style={{flex: 1, padding: 0.05 * SIZE.HEIGHT, paddingVertical: 300, justifyContent: "space-between"}}>
-                <Text>Dados da despesa</Text>
+            <View style={{flex: 1, padding: 0.05 * SIZE.HEIGHT, paddingVertical: 0.2 * SIZE.HEIGHT, justifyContent: "space-between"}}>
+                <Text style={{color: "#183665"}} variant="displaySmall">Dados da despesa</Text>
             <TextInput    
                 label="Data da despesa"
                 value={formData.dataDespesa}
-                onChangeText={(text) => setFormData({ ...formData, dataDespesa: text })} 
+                onPress={() => DateTimePickerAndroid.open({
+                    mode: 'date',
+                    value: formData.dataDespesa ? new Date(formData.dataDespesa) : new Date(),
+                    onChange: (event, date) => {
+                        if (date) {
+                            setFormData({ ...formData, dataDespesa: formatDateToString(date) });
+                        }
+                    },
+                })}
             />
             <TextInput    
-                label="Hora da despesa"
+                label="Data da despesa"
                 value={formData.horaDespesa}
-                onChangeText={(text) => setFormData({ ...formData, horaDespesa: text })}    
+                onPress={() => DateTimePickerAndroid.open({
+                    mode: 'time',
+                    value: formData.horaDespesa ? new Date(formData.horaDespesa) : new Date(),
+                    onChange: (event, date) => {
+                        if (date) {
+                            setFormData({ ...formData, horaDespesa: `${date.getHours()}:${date.getMinutes()}` });
+                        }
+                    },
+                })}
             />
             <TextInput    
                 label="Valor"
                 value={formData.valor}
                 onChangeText={(text) => setFormData({ ...formData, valor: text })}
             />
+            <Button buttonColor="#183665" icon={'send'} mode="contained">Enviar</Button>
             </View>
         </SafeAreaView>
     )

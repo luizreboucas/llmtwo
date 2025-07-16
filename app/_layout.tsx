@@ -42,13 +42,29 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
+const CustomLightTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: '#183665'
+    },
+  };
+
+  const CustomDarkTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      primary: '#183665', 
+    },
+  };
+
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme}>
       <Stack initialRouteName='loginScreen' screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="loginScreen"  options={{ headerShown: false }} />
+        <Stack.Screen name="/loginScreen"  options={{ headerShown: false }} />
         <Stack.Screen name="registerScreen"  options={{ headerShown: false }} />
         <Stack.Screen name="formScreen"  options={{ headerShown: false }} />
       </Stack>

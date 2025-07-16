@@ -47,7 +47,7 @@ export default function RegisterScreen() {
                 openCamera 
                 ? (
                     <CameraView ref={ref} style={{flex: 1}} facing={"back"}>
-                            <Button style={{
+                            <Button buttonColor="#183665" style={{
                                 marginHorizontal: 0.1 * SIZE.WIDTH,
                                 position: 'absolute',
                                 bottom: 0.1 * SIZE.HEIGHT,
@@ -57,7 +57,7 @@ export default function RegisterScreen() {
                 )
                 : (
                     <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
-                        <Button icon="plus" mode="contained" onPress={() => setOpenCamera(true)}>Informar Despesa</Button>
+                        <Button buttonColor="#183665" icon="plus" mode="contained" onPress={() => setOpenCamera(true)}>Informar Despesa</Button>
                     </View>
                 )
             }
