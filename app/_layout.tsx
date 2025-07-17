@@ -63,8 +63,8 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme}>
-      <Stack initialRouteName='loginScreen' screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="/loginScreen"  options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index"  options={{ headerShown: false }} />
         <Stack.Screen name="registerScreen"  options={{ headerShown: false }} />
         <Stack.Screen name="formScreen"  options={{ headerShown: false }} />
       </Stack>

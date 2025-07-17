@@ -5,7 +5,8 @@ import {Button, Text, TextInput} from "react-native-paper";
 import TextRecognition from "@react-native-ml-kit/text-recognition"
 import axios from "axios";
 import { SIZE } from "@/consts/size";
-import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import { Picker } from "@react-native-picker/picker"
 
 export default function FormScreen(){
 
@@ -13,6 +14,17 @@ export default function FormScreen(){
     const Usuario = "USER123";
     const Status = "A1";
     const [imageText, setImageText] = useState("");
+    const categorias = [
+        { value: "01", label: "Passagem" },
+        { value: "02", label: "Hospedagem" },
+        { value: "03", label: "Refeições" },
+        { value: "04", label: "Táxi" },
+        { value: "05", label: "Combustível" },
+        { value: "06", label: "Estacionamento" },
+        { value: "07", label: "Aluguel Veículo" },
+        { value: "08", label: "Material Escritório" },
+        { value: "09", label: "Exame Periódico" }
+    ];
     const [formData, setFormData] = useState({
         Id,
         Usuario,
@@ -20,7 +32,8 @@ export default function FormScreen(){
         dataDespesa: "",
         horaDespesa: "",
         valor: "",
-        imagem64: ""
+        imagem64: "",
+        categoria: ""
     });
     const { uri } = useGlobalSearchParams();
     const transformImageInText = async (imageUri: string) => {
@@ -71,7 +84,7 @@ export default function FormScreen(){
                 "messages": [
                 {
                         "role": "user", 
-                        "content": "estou enviando um texto para você analisar, preciso que você, dessa análise me retorne um JSON com as seguintes propriedades : horaDespesa, dataDespesa e valor, caso não consiga identificar alguma dessas propriedades, no valor delas coloque um valor null, por favor retorne apenas o JSON, eu vou pegar esse json e atribuir às minhas variáveis, o texto é :" + textedImage}
+                        "content": "estou enviando um texto para você analisar, preciso que você, dessa análise me retorne um JSON com as seguintes propriedades : horaDespesa, dataDespesa, valor e categoria, caso não consiga identificar alguma dessas propriedades, no valor delas coloque um valor null, por favor retorne apenas o JSON, eu vou pegar esse json e atribuir às minhas variáveis, traga a categoria segundo o seu valor, não sua label, elas são essas: " + categorias + " o texto é :" + textedImage}
                 ]
             },
             {
@@ -101,7 +114,16 @@ export default function FormScreen(){
     return (
         <SafeAreaView style={{ flex: 1}}>
             <View style={{flex: 1, padding: 0.05 * SIZE.HEIGHT, paddingVertical: 0.2 * SIZE.HEIGHT, justifyContent: "space-between"}}>
-                <Text style={{color: "#183665"}} variant="displaySmall">Dados da despesa</Text>
+            <Picker
+                selectedValue={formData.categoria || ''}
+                onValueChange={(value) => setFormData({ ...formData, categoria: value })}
+                style={{ height: 50, width: '100%' }}
+            >
+                {categorias.map((categoria) => (
+                    <Picker.Item key={categoria.value} label={categoria.label} value={categoria.value}
+                    />
+                ))}
+            </Picker>
             <TextInput    
                 label="Data da despesa"
                 value={formData.dataDespesa}
@@ -116,7 +138,7 @@ export default function FormScreen(){
                 })}
             />
             <TextInput    
-                label="Data da despesa"
+                label="Hora da despesa"
                 value={formData.horaDespesa}
                 onPress={() => DateTimePickerAndroid.open({
                     mode: 'time',
