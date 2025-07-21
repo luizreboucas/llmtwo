@@ -38,6 +38,31 @@
           "microphonePermission": "Permitir $(PRODUCT_NAME) acessar seu microfone",
           "recordAudioAndroid": true
         }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Righteous-Regular.ttf"
+          ],
+          "android": {
+            "fonts": [
+              {
+                "fontFamily": "Righteous",
+                "fontDefinitions": [
+                  {
+                    "path": "./assets/fonts/Righteous-Regular.ttf",
+                    "weight": 400,
+                    "style": "normal"
+                  }
+                ]
+              }
+            ]
+          },
+          "ios": {
+            "fonts": ["./assets/fonts/Righteous-Regular.ttf"]
+          }
+        }
       ]
     ],
     "experiments": {

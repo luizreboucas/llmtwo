@@ -15,24 +15,37 @@ export default function LoginScreen() {
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{
             flex: 1, 
-            paddingHorizontal: 0.05 * SIZE.WIDTH, 
-            paddingVertical: 0.2 * SIZE.HEIGHT,
-            justifyContent: 'space-between'
+            paddingHorizontal: 0.09 * SIZE.WIDTH, 
+            paddingVertical: 0.1 * SIZE.HEIGHT,
+            justifyContent: 'space-between',
+            backgroundColor: "#090742",
         }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', color: "#183665" }}>Bem vindo</Text>
-        <TextInput
-            label="Email"
+        <View style={{ alignItems: 'center'}}>
+          <Text style={{ fontSize: 0.1 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white" }}>Cash</Text>
+          <Text style={{ fontSize: 0.1 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white" }}>Corporative</Text>
+        </View>
+        <View style={{gap: 0.05 * SIZE.HEIGHT}}>
+          <View>
+          <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8 }}>Usuário:</Text>
+          <TextInput
+            label="Digite seu login"
             value={email}
             onChangeText={text => setEmail(text)}
+            style={{fontFamily: "Righteous"}}
         />
-        <TextInput
-            label="Senha"
-            value={password}
-            onChangeText={text => setPassword(text)}
-            secureTextEntry
+        </View>
+        <View>
+          <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8 }}>Senha:</Text>
+          <TextInput
+            label="Digite sua senha"
+            value={email}
+            onChangeText={text => setEmail(text)}
+            style={{fontFamily: "Righteous"}}
         />
-        <Button buttonColor="#183665" icon="arrow-right" mode="contained" onPress={() => router.replace('/registerScreen')}>
-            Login
+        </View>
+        </View>
+        <Button style={{borderRadius: 0, paddingVertical: 0.01 * SIZE.HEIGHT}} buttonColor="#375dfb" icon="arrow-right" mode="contained" onPress={() => router.replace('/registerScreen')}>
+            <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8 }}>Login</Text>
         </Button>
       </View>
     </SafeAreaView>

@@ -42,25 +42,27 @@ export default function RegisterScreen() {
         });
     }
     return(
-        <SafeAreaView style={{ flex: 1}}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#090742" }}>
+            {!openCamera && ( <View style={{ alignItems: 'center', marginTop: 0.1 * SIZE.HEIGHT}}>
+                <Text style={{ fontSize: 0.1 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white" }}>Bem-Vindo(a)</Text>
+            </View>)}
             {
                 openCamera 
                 ? (
                     <CameraView ref={ref} style={{flex: 1}} facing={"back"}>
-                            <Button buttonColor="#183665" style={{
-                                marginHorizontal: 0.1 * SIZE.WIDTH,
-                                position: 'absolute',
-                                bottom: 0.1 * SIZE.HEIGHT,
-                                alignSelf: 'center'
-                            }} icon="record" mode="contained" onPress={() => takePicture()}>Registrar Despesa</Button>
+                        <Button style={{borderRadius: 0, paddingVertical: 0.01 * SIZE.HEIGHT, position: 'absolute', bottom: 0.1 * SIZE.HEIGHT, alignSelf: 'center'}} buttonColor="#375dfb" icon="camera" mode="contained" onPress={() => takePicture()}>
+                            <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8 }}>Registrar despesa</Text>
+                        </Button>
                     </CameraView>
                 )
                 : (
                     <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
-                        <Button buttonColor="#183665" icon="plus" mode="contained" onPress={() => setOpenCamera(true)}>Informar Despesa</Button>
+                        <Button style={{borderRadius: 0, paddingVertical: 0.01 * SIZE.HEIGHT}} buttonColor="#375dfb" icon="plus" mode="contained" onPress={() => setOpenCamera(true)}>
+                            <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8 }}>Informar despesa</Text>
+                        </Button>
                     </View>
                 )
             }
         </SafeAreaView> 
     )
-}   
+}

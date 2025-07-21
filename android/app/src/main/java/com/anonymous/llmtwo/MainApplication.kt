@@ -1,4 +1,5 @@
 package com.anonymous.llmtwo
+import com.facebook.react.common.assets.ReactFontManager
 
 import android.app.Application
 import android.content.res.Configuration
@@ -42,6 +43,9 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+    // @generated begin xml-fonts-init - expo prebuild (DO NOT MODIFY) sync-6d5c75056bf7fe299e18728ba332063b40b69a2c
+    ReactFontManager.getInstance().addCustomFont(this, "Righteous", R.font.xml_righteous)
+    // @generated end xml-fonts-init
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
