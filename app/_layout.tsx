@@ -67,6 +67,7 @@ function RootLayoutNav() {
         <Stack.Screen name="index"  options={{ headerShown: false }} />
         <Stack.Screen name="registerScreen"  options={{ headerShown: false }} />
         <Stack.Screen name="formScreen"  options={{ headerShown: false }} />
+        <Stack.Screen name="finishScreen"  options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

@@ -38,9 +38,10 @@ export default function LoginScreen() {
           <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8 }}>Senha:</Text>
           <TextInput
             label="Digite sua senha"
-            value={email}
-            onChangeText={text => setEmail(text)}
+            value={password}
+            onChangeText={text => setPassword(text)}
             style={{fontFamily: "Righteous"}}
+            secureTextEntry
         />
         </View>
         </View>

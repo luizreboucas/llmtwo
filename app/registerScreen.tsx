@@ -19,7 +19,9 @@ export default function RegisterScreen() {
         return (
             <View style={{flex: 1, justifyContent: "center"}}>
                 <Text style={{ textAlign: 'center',paddingBottom: 10}}>Precisamos da sua permissão para acessar a câmera</Text>
-                <Button onPress={requestPermission}>Ceder permissão</Button>
+                <Button style={{borderRadius: 0, paddingVertical: 0.01 * SIZE.HEIGHT, position: 'absolute', bottom: 0.1 * SIZE.HEIGHT, alignSelf: 'center'}} onPress={requestPermission}>
+                    <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8 }}>Ceder Permissão</Text>
+                </Button>
             </View>
         );
     }

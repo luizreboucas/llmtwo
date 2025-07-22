@@ -1,4 +1,4 @@
-import { useGlobalSearchParams } from "expo-router";
+import { useGlobalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { SafeAreaView, View } from "react-native";
 import {Button, Text, TextInput} from "react-native-paper";
@@ -7,6 +7,8 @@ import axios from "axios";
 import { SIZE } from "@/consts/size";
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Picker } from "@react-native-picker/picker"
+import * as FileSystem from "expo-file-system"
+import { parse } from "@babel/core";
 
 export default function FormScreen(){
 
@@ -36,6 +38,7 @@ export default function FormScreen(){
         categoria: ""
     });
     const { uri } = useGlobalSearchParams();
+    const router = useRouter();
     const transformImageInText = async (imageUri: string) => {
         try {
             const processed = await TextRecognition.recognize(imageUri);
@@ -48,7 +51,6 @@ export default function FormScreen(){
     }
 
     const extractJson = (content: string) => {
-        // Procura por um bloco JSON delimitado por ```json ... ```
         const jsonRegex = /```json\s*([\s\S]*?)\s*```/;
         const match = content.match(jsonRegex);
         if (match) {
@@ -58,7 +60,6 @@ export default function FormScreen(){
                 console.error("Erro ao fazer o parse do JSON:", err);
             }
         }
-        // Se não encontrar bloco markdown, tenta fazer o parse direto
         try {
             console.log("Tentando fazer o parse direto do JSON:", content);
             return JSON.parse(content);
@@ -100,7 +101,21 @@ export default function FormScreen(){
             console.error("Erro ao chamar a API:", error);
         }
     }
-
+    const proceedToSap = async() => {
+        try {
+            const parsedImage = await FileSystem.readAsStringAsync(uri, {
+            encoding: FileSystem.EncodingType.Base64
+        })
+            const data = {
+                ...formData,
+                imagem64: parsedImage
+            }
+            console.log("Dados a serem enviados:", data);
+            router.replace('/finishScreen');
+        } catch (error) {
+            console.error("Erro ao enviar dadso:", error);
+        }
+    }
     useEffect(() => {
         const processImage = async () => {
             const textedImage = await transformImageInText(uri as string);
@@ -112,50 +127,75 @@ export default function FormScreen(){
     },[]);
 
     return (
-        <SafeAreaView style={{ flex: 1}}>
-            <View style={{flex: 1, padding: 0.05 * SIZE.HEIGHT, paddingVertical: 0.2 * SIZE.HEIGHT, justifyContent: "space-between"}}>
-            <Picker
-                selectedValue={formData.categoria || ''}
-                onValueChange={(value) => setFormData({ ...formData, categoria: value })}
-                style={{ height: 50, width: '100%' }}
-            >
-                {categorias.map((categoria) => (
-                    <Picker.Item key={categoria.value} label={categoria.label} value={categoria.value}
-                    />
-                ))}
-            </Picker>
-            <TextInput    
-                label="Data da despesa"
-                value={formData.dataDespesa}
-                onPress={() => DateTimePickerAndroid.open({
-                    mode: 'date',
-                    value: formData.dataDespesa ? new Date(formData.dataDespesa) : new Date(),
-                    onChange: (event, date) => {
-                        if (date) {
-                            setFormData({ ...formData, dataDespesa: formatDateToString(date) });
-                        }
-                    },
-                })}
+        <SafeAreaView style={{ flex: 1, backgroundColor: "#090742"}}>
+            <Text style={{ fontSize: 0.07 * SIZE.WIDTH, alignSelf: "center", marginTop: 0.1 * SIZE.HEIGHT, fontFamily: "Righteous", fontWeight: 'bold', color: "white" }}>Dados da despesa</Text>
+            <View style={{flex: 1, padding: 0.05 * SIZE.HEIGHT, paddingVertical: 0.1 * SIZE.HEIGHT, justifyContent: "space-between"}}>
+            <View>
+                <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8}}>Categoria:</Text>
+                <Picker
+                    selectedValue={formData.categoria || ''}
+                    onValueChange={(value) => setFormData({ ...formData, categoria: value })}
+                    style={{ height: 50, width: '100%', backgroundColor: 'white' }}
+                >
+                    {categorias.map((categoria) => (
+                        <Picker.Item style={{fontFamily: 'Righteous'}} fontFamily="Righteous" key={categoria.value} label={categoria.label} value={categoria.value}
+                        />
+                    ))}
+                </Picker>
+            </View>
+            <View>
+                <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8}}>Data:</Text>
+                <TextInput
+                    mode="flat" 
+                    theme={{ roundness: 0 }}
+                    style={{backgroundColor: 'white'}}   
+                    label="Data da despesa"
+                    value={formData.dataDespesa}
+                    onPress={() => DateTimePickerAndroid.open({
+                        mode: 'date',
+                        value: formData.dataDespesa ? new Date(formData.dataDespesa) : new Date(),
+                        onChange: (event, date) => {
+                            if (date) {
+                                setFormData({ ...formData, dataDespesa: formatDateToString(date) });
+                            }
+                        },
+                    })}
             />
-            <TextInput    
-                label="Hora da despesa"
-                value={formData.horaDespesa}
-                onPress={() => DateTimePickerAndroid.open({
-                    mode: 'time',
-                    value: formData.horaDespesa ? new Date(formData.horaDespesa) : new Date(),
-                    onChange: (event, date) => {
-                        if (date) {
-                            setFormData({ ...formData, horaDespesa: `${date.getHours()}:${date.getMinutes()}` });
-                        }
-                    },
-                })}
+            </View>
+            <View>
+                <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8}}>Hora:</Text>
+                <TextInput
+                    mode="flat"
+                    theme={{ roundness: 0 }}
+                    style={{backgroundColor: 'white'}}      
+                    label="Hora da despesa"
+                    value={formData.horaDespesa}
+                    onPress={() => DateTimePickerAndroid.open({
+                        mode: 'time',
+                        value: formData.horaDespesa ? new Date(formData.horaDespesa) : new Date(),
+                        onChange: (event, date) => {
+                            if (date) {
+                                setFormData({ ...formData, horaDespesa: `${date.getHours()}:${date.getMinutes()}` });
+                            }
+                        },
+                    })}
             />
-            <TextInput    
-                label="Valor"
-                value={formData.valor}
-                onChangeText={(text) => setFormData({ ...formData, valor: text })}
-            />
-            <Button buttonColor="#183665" icon={'send'} mode="contained">Enviar</Button>
+            </View>
+            <View>
+                 <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8}}>Valor:</Text>
+                <TextInput
+                    mode="flat"
+                    theme={{ roundness: 0 }}
+                    style={{backgroundColor: 'white'}}     
+                    label="Valor"
+                    value={formData.valor}
+                    onChangeText={(text) => setFormData({ ...formData, valor: text })}
+                />
+            </View>
+            <Button style={{borderRadius: 0, paddingVertical: 0.01 * SIZE.HEIGHT}} buttonColor="#375dfb" icon={'send'} mode="contained">
+                <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8 }} 
+                    onPress={proceedToSap}>Enviar</Text>
+            </Button>
             </View>
         </SafeAreaView>
     )
