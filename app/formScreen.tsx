@@ -8,8 +8,7 @@ import { SIZE } from "@/consts/size";
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Picker } from "@react-native-picker/picker"
 import * as FileSystem from "expo-file-system"
-import { parse } from "@babel/core";
-
+import {OPENAI_API_KEY} from "@/env.json";
 export default function FormScreen(){
 
     const Id = "0000000001";
@@ -27,6 +26,8 @@ export default function FormScreen(){
         { value: "08", label: "Material Escritório" },
         { value: "09", label: "Exame Periódico" }
     ];
+    const categoriasValores = categorias.map(c => c.label).join(', ');
+    console.log('categorias valores:', categoriasValores);
     const [formData, setFormData] = useState({
         Id,
         Usuario,
@@ -85,23 +86,33 @@ export default function FormScreen(){
                 "messages": [
                 {
                         "role": "user", 
-                        "content": "estou enviando um texto para você analisar, preciso que você, dessa análise me retorne um JSON com as seguintes propriedades : horaDespesa, dataDespesa, valor e categoria, caso não consiga identificar alguma dessas propriedades, no valor delas coloque um valor null, por favor retorne apenas o JSON, eu vou pegar esse json e atribuir às minhas variáveis, traga a categoria segundo o seu valor, não sua label, elas são essas: " + categorias + " o texto é :" + textedImage}
+                        "content": "estou enviando um texto para você analisar, preciso que você, dessa análise me retorne um JSON com as seguintes propriedades : horaDespesa, dataDespesa, valor e categoria, caso não consiga identificar alguma dessas propriedades, no valor delas coloque um null, por favor retorne apenas o JSON, eu vou pegar esse json e atribuir às minhas variáveis, traga a categoria segundo o seu valor, não sua label, elas são essas: " + categoriasValores + " o texto é :" + textedImage}
                 ]
             },
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`
+                    Authorization: `Bearer ${OPENAI_API_KEY}`
                 }
             }
         )
             console.log("resposta da API:", response.data.choices[0].message.content);
-            setFormData({...formData, ...extractJson(response.data.choices[0].message.content) });
+            const jsonResult = extractJson(response.data.choices[0].message.content)
+            const categoriaSelecionada = categorias.find(c => c.label === jsonResult.categoria);
+            console.log('categoria selecionada:', categoriaSelecionada);
+            setFormData(prev => ({
+                ...prev,
+                dataDespesa: jsonResult.dataDespesa ? String(jsonResult.dataDespesa) : "",
+                horaDespesa: jsonResult.horaDespesa ? String(jsonResult.horaDespesa) : "",
+                valor: jsonResult.valor ? String(jsonResult.valor) : "",
+                categoria: categoriaSelecionada?.value ?? "05",
+                }));
         } catch (error) {
             console.error("Erro ao chamar a API:", error);
         }
     }
     const proceedToSap = async() => {
+        
         try {
             const parsedImage = await FileSystem.readAsStringAsync(uri, {
             encoding: FileSystem.EncodingType.Base64
@@ -110,6 +121,24 @@ export default function FormScreen(){
                 ...formData,
                 imagem64: parsedImage
             }
+            // const request = {
+            //     id: "0000000011",
+            //     usuario: "USER123",
+            //     matricula: "123456",
+            //     data_envio: new Date().toISOString().split('T')[0],
+            //     data_despesa: new Date(formData.dataDespesa).toISOString().split('T')[0],
+            //     hora_envio: `PT${new Date().getHours()}H${new Date().getMinutes()}M0S`,
+            //     hora_despesa: `PT${formData.horaDespesa.split(':')[0]}H${formData.horaDespesa.split(':')[1]}M00S`,
+            //     id_categoria: `00${formData.categoria}`,
+            //     valor: `${formData.valor}`,
+            //     imagem_base64: parsedImage,
+            //     status: "A1"
+            // }
+            // const result = await axios.get("http://gfxs4pcoe.gfxconsultoria.com:50000/sap/opu/odata/sap/ZI_DESPESAS_CDS/ZI_DESPESAS",{
+            //     headers: {
+
+            //     }
+            // })
             console.log("Dados a serem enviados:", data);
             router.replace('/finishScreen');
         } catch (error) {
@@ -119,7 +148,7 @@ export default function FormScreen(){
     useEffect(() => {
         const processImage = async () => {
             const textedImage = await transformImageInText(uri as string);
-            // await getResponseFromAi(textedImage);
+            await getResponseFromAi(textedImage);
             console.log("uri chegando na página de form:", uri);
             console.log("Texto extraído da imagem:", textedImage);
         };
@@ -133,12 +162,18 @@ export default function FormScreen(){
             <View>
                 <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8}}>Categoria:</Text>
                 <Picker
-                    selectedValue={formData.categoria || ''}
+                    selectedValue={formData.categoria}
+                    itemStyle={{ color: '#375dfb', fontFamily: 'Righteous' }} 
                     onValueChange={(value) => setFormData({ ...formData, categoria: value })}
-                    style={{ height: 50, width: '100%', backgroundColor: 'white' }}
+                    style={{ height: 0.1 * SIZE.HEIGHT, width: '100%'}}
                 >
                     {categorias.map((categoria) => (
-                        <Picker.Item style={{fontFamily: 'Righteous'}} fontFamily="Righteous" key={categoria.value} label={categoria.label} value={categoria.value}
+                        <Picker.Item
+                            style={{fontFamily: 'Righteous'}}
+                            fontFamily="Righteous"
+                            key={categoria.value}
+                            label={categoria.label}
+                            value={categoria.value}
                         />
                     ))}
                 </Picker>
