@@ -8,7 +8,7 @@ import { SIZE } from "@/consts/size";
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Picker } from "@react-native-picker/picker"
 import * as FileSystem from "expo-file-system"
-import {OPENAI_API_KEY, CREDENCIAIS_SAP} from "@/env.json";
+import {OPENAI_API_KEY, CREDENCIAIS_SAP, API_URL} from "@/env.json";
 export default function FormScreen(){
 
     const Id = "0000000001";
@@ -124,37 +124,23 @@ export default function FormScreen(){
             const request = {
                 usuario: "USER123",
                 matricula: "9980000000",
-                data_envio: new Date().toISOString().split('T')[0],
-                data_despesa: new Date(formData.dataDespesa).toISOString().split('T')[0],
+                data_envio: `${new Date().toISOString().split('T')[0]}T00:00:00`,
+                data_despesa: `${new Date(formData.dataDespesa).toISOString().split('T')[0]}T00:00:00`,
                 hora_envio: `PT${new Date().getHours()}H${new Date().getMinutes()}M0S`,
                 hora_despesa: `PT${formData.horaDespesa.split(':')[0]}H${formData.horaDespesa.split(':')[1]}M00S`,
                 id_categoria: `00${formData.categoria}`,
                 valor: `${formData.valor}`,
-                imagem_base64: parsedImage.substring(0,100),
+                imagem_base64: "4fhwefbhufbuebf",
                 status: "A1"
             }
             console.log("Dados a serem enviados para o SAP:", request);
-            const csrfToken = await axios.get("http://gfxs4pcoe.gfxconsultoria.com:50000/sap/opu/odata/sap/ZI_DESPESAS_CDS/ZI_DESPESAS",{
-                headers: {
-                    Authorization: `Basic ${CREDENCIAIS_SAP}`,
-                    "X-CSRF-Token": "fetch"
-                }
-            }).then(response => {
-                return response.headers['x-csrf-token'];
-            }).catch(error => {
-                console.error("Erro ao obter o token CSRF:", error);
-            })
-            const response = await axios.post("http://gfxs4pcoe.gfxconsultoria.com:50000/sap/opu/odata/sap/ZI_DESPESAS_CDS/ZI_DESPESAS",request,{
-                headers: {
-                    Authorization: `Basic ${CREDENCIAIS_SAP}`,
-                    "X-CSRF-Token": csrfToken
-                }
-            })
+            const response = await axios.post(API_URL,request)
             console.log("Resposta da API SAP:", response.data);
             console.log("Dados a serem enviados:", data);
             router.replace('/finishScreen');
         } catch (error) {
             console.error("Erro ao enviar dadso:", JSON.stringify(error, null, 2));
+            console.log("Erro ao enviar dados:", error);
         }
     }
     useEffect(() => {
