@@ -1,7 +1,7 @@
 import { useGlobalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { SafeAreaView, View } from "react-native";
-import {Button, Text, TextInput} from "react-native-paper";
+import { SafeAreaView, View, BackHandler } from "react-native";
+import {Button, IconButton, Text, TextInput} from "react-native-paper";
 import TextRecognition from "@react-native-ml-kit/text-recognition"
 import axios from "axios";
 import { SIZE } from "@/consts/size";
@@ -15,6 +15,7 @@ export default function FormScreen(){
     const Usuario = "USER123";
     const Status = "A1";
     const [imageText, setImageText] = useState("");
+    const [loading, setLoading] = useState(false);
     const categorias = [
         { value: "01", label: "Passagem" },
         { value: "02", label: "Hospedagem" },
@@ -32,8 +33,8 @@ export default function FormScreen(){
         Id,
         Usuario,
         Status,
-        dataDespesa: "",
-        horaDespesa: "",
+        dataDespesa: new Date(),
+        horaDespesa: "00:00",
         valor: "",
         imagem64: "",
         categoria: ""
@@ -79,6 +80,7 @@ export default function FormScreen(){
     }
 
     const getResponseFromAi = async (textedImage: string) => {
+        setLoading(true);
         try {
             const response = await axios.post("https://api.openai.com/v1/chat/completions", {
                 "model": "gpt-4o-mini",
@@ -86,7 +88,7 @@ export default function FormScreen(){
                 "messages": [
                 {
                         "role": "user", 
-                        "content": "estou enviando um texto para você analisar, preciso que você, dessa análise me retorne um JSON com as seguintes propriedades : horaDespesa, dataDespesa, valor e categoria, caso não consiga identificar alguma dessas propriedades, no valor delas coloque um null, por favor retorne apenas o JSON, eu vou pegar esse json e atribuir às minhas variáveis, traga a categoria segundo o seu valor, não sua label, elas são essas: " + categoriasValores + " o texto é :" + textedImage}
+                        "content": "estou enviando um texto para você analisar, preciso que você, dessa análise me retorne um JSON com as seguintes propriedades : horaDespesa, dataDespesa, valor e categoria, caso não consiga identificar alguma dessas propriedades, no valor delas coloque um null, dataDespesa traga com o valor no tipo YYYY-MM-DD, horaDespesa como HH:SS, por favor retorne apenas o JSON, eu vou pegar esse json e atribuir às minhas variáveis, traga a categoria segundo o seu valor, não sua label, elas são essas: " + categoriasValores + " o texto é :" + textedImage}
                 ]
             },
             {
@@ -96,23 +98,26 @@ export default function FormScreen(){
                 }
             }
         )
+            setLoading(false);
             console.log("resposta da API:", response.data.choices[0].message.content);
             const jsonResult = extractJson(response.data.choices[0].message.content)
             const categoriaSelecionada = categorias.find(c => c.label === jsonResult.categoria);
             console.log('categoria selecionada:', categoriaSelecionada);
             setFormData(prev => ({
                 ...prev,
-                dataDespesa: jsonResult.dataDespesa ? String(jsonResult.dataDespesa) : "",
-                horaDespesa: jsonResult.horaDespesa ? String(jsonResult.horaDespesa) : "",
-                valor: jsonResult.valor ? String(jsonResult.valor) : "",
+                dataDespesa: jsonResult.dataDespesa ? new Date(String(jsonResult.dataDespesa)) : prev.dataDespesa,
+                horaDespesa: jsonResult.horaDespesa ? String(jsonResult.horaDespesa): "",
+                valor: jsonResult.valor ? String(jsonResult.valor) : prev.valor,
                 categoria: categoriaSelecionada?.value ?? "05",
-                }));
+            }));
         } catch (error) {
             console.error("Erro ao chamar a API:", error);
+            setLoading(false);
         }
+         setLoading(false);
     }
     const proceedToSap = async() => {
-        
+        setLoading(true);
         try {
             const parsedImage = await FileSystem.readAsStringAsync(uri, {
             encoding: FileSystem.EncodingType.Base64
@@ -125,9 +130,9 @@ export default function FormScreen(){
                 usuario: "USER123",
                 matricula: "9980000000",
                 data_envio: `${new Date().toISOString().split('T')[0]}T00:00:00`,
-                data_despesa: `${new Date(formData.dataDespesa).toISOString().split('T')[0]}T00:00:00`,
+                data_despesa: `${formData.dataDespesa.toISOString().split('T')[0]}T00:00:00`,
                 hora_envio: `PT${new Date().getHours()}H${new Date().getMinutes()}M0S`,
-                hora_despesa: `PT${formData.horaDespesa.split(':')[0]}H${formData.horaDespesa.split(':')[1]}M00S`,
+                hora_despesa: `PT${formData.horaDespesa.substring(0,2)}H${formData.horaDespesa.substring(3)}M00S`,
                 id_categoria: `00${formData.categoria}`,
                 valor: `${formData.valor}`,
                 imagem_base64: "4fhwefbhufbuebf",
@@ -137,12 +142,21 @@ export default function FormScreen(){
             const response = await axios.post(API_URL,request)
             console.log("Resposta da API SAP:", response.data);
             console.log("Dados a serem enviados:", data);
+            setLoading(false);
             router.replace('/finishScreen');
         } catch (error) {
             console.error("Erro ao enviar dadso:", JSON.stringify(error, null, 2));
             console.log("Erro ao enviar dados:", error);
+            setLoading(false);
         }
+        setLoading(false);
     }
+    function getTodayWithTime(hora: string) {
+        const [h, m] = hora.split(':').map(Number);
+        const d = new Date();
+        d.setHours(h || 0, m || 0, 0, 0);
+    return d;
+}
     useEffect(() => {
         const processImage = async () => {
             const textedImage = await transformImageInText(uri as string);
@@ -151,10 +165,18 @@ export default function FormScreen(){
             console.log("Texto extraído da imagem:", textedImage);
         };
         processImage();
+
+        const backHandler = () => {
+            router.back();
+            return true;
+        };
+        const subscription = BackHandler.addEventListener('hardwareBackPress', backHandler);
+        return () => subscription.remove();
     },[]);
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: "#090742"}}>
+            
             <Text style={{ fontSize: 0.07 * SIZE.WIDTH, alignSelf: "center", marginTop: 0.1 * SIZE.HEIGHT, fontFamily: "Righteous", fontWeight: 'bold', color: "white" }}>Dados da despesa</Text>
             <View style={{flex: 1, padding: 0.05 * SIZE.HEIGHT, paddingVertical: 0.1 * SIZE.HEIGHT, justifyContent: "space-between"}}>
             <View>
@@ -183,13 +205,13 @@ export default function FormScreen(){
                     theme={{ roundness: 0 }}
                     style={{backgroundColor: 'white'}}   
                     label="Data da despesa"
-                    value={formData.dataDespesa}
+                    value={formatDateToString(formData.dataDespesa)}
                     onPress={() => DateTimePickerAndroid.open({
                         mode: 'date',
                         value: formData.dataDespesa ? new Date(formData.dataDespesa) : new Date(),
                         onChange: (event, date) => {
                             if (date) {
-                                setFormData({ ...formData, dataDespesa: formatDateToString(date) });
+                                setFormData({ ...formData, dataDespesa: date });
                             }
                         },
                     })}
@@ -205,10 +227,10 @@ export default function FormScreen(){
                     value={formData.horaDespesa}
                     onPress={() => DateTimePickerAndroid.open({
                         mode: 'time',
-                        value: formData.horaDespesa ? new Date(formData.horaDespesa) : new Date(),
+                        value: getTodayWithTime(formData.horaDespesa),
                         onChange: (event, date) => {
                             if (date) {
-                                setFormData({ ...formData, horaDespesa: `${date.getHours()}:${date.getMinutes()}` });
+                                setFormData({ ...formData, horaDespesa: (date.getHours().toString().padStart(2, '0')) + ':' + date.getMinutes().toString().padStart(2, '0') });
                             }
                         },
                     })}
@@ -225,7 +247,7 @@ export default function FormScreen(){
                     onChangeText={(text) => setFormData({ ...formData, valor: text })}
                 />
             </View>
-            <Button style={{borderRadius: 0, paddingVertical: 0.01 * SIZE.HEIGHT}} buttonColor="#375dfb" icon={'send'} mode="contained">
+            <Button loading={loading} style={{borderRadius: 0, paddingVertical: 0.01 * SIZE.HEIGHT}} buttonColor="#375dfb" icon={'send'} mode="contained">
                 <Text style={{ fontSize: 0.05 * SIZE.WIDTH, fontFamily: "Righteous", fontWeight: 'bold', color: "white", marginBottom: 8 }} 
                     onPress={proceedToSap}>Enviar</Text>
             </Button>
