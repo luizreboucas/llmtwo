@@ -1,6 +1,6 @@
 import { useGlobalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { SafeAreaView, View, BackHandler } from "react-native";
+import { SafeAreaView, View, BackHandler, Image } from "react-native";
 import {Button, IconButton, Text, TextInput} from "react-native-paper";
 import TextRecognition from "@react-native-ml-kit/text-recognition"
 import axios from "axios";
@@ -9,6 +9,7 @@ import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Picker } from "@react-native-picker/picker"
 import * as FileSystem from "expo-file-system"
 import {OPENAI_API_KEY, CREDENCIAIS_SAP, API_URL} from "@/env.json";
+import { FlipType, SaveFormat, useImageManipulator } from 'expo-image-manipulator';
 export default function FormScreen(){
 
     const Id = "0000000001";
@@ -40,6 +41,7 @@ export default function FormScreen(){
         categoria: ""
     });
     const { uri } = useGlobalSearchParams();
+    const imageContext = useImageManipulator(uri as string);
     const router = useRouter();
     const transformImageInText = async (imageUri: string) => {
         try {
@@ -119,13 +121,17 @@ export default function FormScreen(){
     const proceedToSap = async() => {
         setLoading(true);
         try {
-            const parsedImage = await FileSystem.readAsStringAsync(uri, {
-            encoding: FileSystem.EncodingType.Base64
+            const image = await imageContext.renderAsync()
+            const compressedImage = await image.saveAsync({
+                base64: true,
+                format: SaveFormat.JPEG,
+                compress: 0.1
+            })
+            const parsedImage = await FileSystem.readAsStringAsync(compressedImage.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+
         })
-            const data = {
-                ...formData,
-                imagem64: parsedImage
-            }
+            console.log("Imagem convertida para base64:", parsedImage); 
             const request = {
                 usuario: "USER123",
                 matricula: "9980000000",
@@ -135,13 +141,11 @@ export default function FormScreen(){
                 hora_despesa: `PT${formData.horaDespesa.substring(0,2)}H${formData.horaDespesa.substring(3)}M00S`,
                 id_categoria: `00${formData.categoria}`,
                 valor: `${formData.valor}`,
-                imagem_base64: "4fhwefbhufbuebf",
+                imagem_base64: parsedImage,
                 status: "A1"
             }
-            console.log("Dados a serem enviados para o SAP:", request);
             const response = await axios.post(API_URL,request)
             console.log("Resposta da API SAP:", response.data);
-            console.log("Dados a serem enviados:", data);
             setLoading(false);
             router.replace('/finishScreen');
         } catch (error) {
