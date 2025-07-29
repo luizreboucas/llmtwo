@@ -107,7 +107,12 @@ export default function FormScreen(){
             console.log('categoria selecionada:', categoriaSelecionada);
             setFormData(prev => ({
                 ...prev,
-                dataDespesa: jsonResult.dataDespesa ? new Date(String(jsonResult.dataDespesa)) : prev.dataDespesa,
+                 dataDespesa: jsonResult.dataDespesa
+                ? (() => {
+                    const [year, month, day] = String(jsonResult.dataDespesa).split('-').map(Number);
+                    return new Date(year, month - 1, day);
+                })()
+                : prev.dataDespesa,
                 horaDespesa: jsonResult.horaDespesa ? String(jsonResult.horaDespesa): "",
                 valor: jsonResult.valor ? String(jsonResult.valor) : prev.valor,
                 categoria: categoriaSelecionada?.value ?? "05",
@@ -130,8 +135,7 @@ export default function FormScreen(){
             const parsedImage = await FileSystem.readAsStringAsync(compressedImage.uri, {
             encoding: FileSystem.EncodingType.Base64,
 
-        })
-            console.log("Imagem convertida para base64:", parsedImage); 
+        }) 
             const request = {
                 usuario: "USER123",
                 matricula: "9980000000",
